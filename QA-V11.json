@@ -1,0 +1,28 @@
+{
+  "version": "V11 polished UI",
+  "pages": [
+    "about.html",
+    "activities.html",
+    "contact.html",
+    "create-online.html",
+    "get-involved.html",
+    "index.html",
+    "whats-on.html"
+  ],
+  "page_count": 7,
+  "issues": [],
+  "whatsapp_sitewide": true,
+  "whatsapp_contact": true,
+  "logo_original_symbol_used": true,
+  "js_has_whatsapp_icon": true,
+  "js_has_footer_jump_hide": true,
+  "external_css_imports": false,
+  "fetch_or_xhr": false,
+  "notes": [
+    "Contact layout restyled",
+    "Create Online prompt/toolbar restyled",
+    "Footer compacted",
+    "Home jump rail hides at footer",
+    "Sitewide WhatsApp action added"
+  ]
+}

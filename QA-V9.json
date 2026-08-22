@@ -1,0 +1,26 @@
+{
+  "version": "V9 polished from V8",
+  "pages": [
+    "activities.html",
+    "get-involved.html",
+    "about.html",
+    "contact.html",
+    "create-online.html",
+    "whats-on.html",
+    "index.html"
+  ],
+  "page_count": 7,
+  "script_syntax_checked": true,
+  "missing_local_dependencies": [],
+  "changes_checked": {
+    "text_only_header_wordmark": true,
+    "incoming_transition_precover": false,
+    "fixed_scroll_brush_removed": true,
+    "social_icon_enhancement": true,
+    "mobile_breakpoints": [
+      "1100px",
+      "820px",
+      "560px"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+Inner Glow Therapy CIC — external asset sources
+
+The website's real Inner Glow logo/icon are supplied by the client.
+
+Public-domain artwork downloaded from Openclipart and stored locally so the site remains lightweight/offline-friendly. Openclipart states that all clipart is released under Creative Commons Zero (CC0) / public domain and may be used for commercial or non-commercial purposes without attribution: https://openclipart.org/faq
+
+
+1. Paintbrush
+   https://openclipart.org/detail/260917/paintbrush
+   Source page states: “From a public domain drawing on Wikimedia Commons.”
+   Local file: assets/pd-paint-brush.svg
+
+2. Brushes and Palette
+   https://openclipart.org/detail/298958/brushes-and-palette
+   Source page states it is a public-domain image uploaded to publicdomainvectors.org.
+   Local file: assets/pd-palette.svg
+
+3. Dancing Sketch
+   https://openclipart.org/detail/215396/dancing-sketch
+   Openclipart artwork used as local SVG.
+   Local file: assets/pd-dancing-sketch.svg
+
+4. Cafecup
+   https://openclipart.org/detail/250378/cafecup
+   Openclipart line-art SVG.
+   Local file: assets/pd-coffee.svg
+
+All other decorative SVG/CSS diagrams and animation shapes in this build are original code-created artwork.

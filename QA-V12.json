@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "about.html",
+    "activities.html",
+    "contact.html",
+    "create-online.html",
+    "get-involved.html",
+    "index.html",
+    "whats-on.html"
+  ],
+  "uses_real_header_lockup": true,
+  "uses_full_footer_logo": true,
+  "whatsapp_on_all_pages": true,
+  "missing_local_refs": []
+}

@@ -1,0 +1,19 @@
+{
+  "version": "V10",
+  "pages": [
+    "about.html",
+    "activities.html",
+    "contact.html",
+    "create-online.html",
+    "get-involved.html",
+    "index.html",
+    "whats-on.html"
+  ],
+  "missing_local_assets": [],
+  "all_pages_have_incoming_precover": true,
+  "all_pages_have_real_header_logo": true,
+  "single_brush_transition": true,
+  "node_syntax_checked": true,
+  "browser_screenshot_note": "Chromium headless did not exit in this container, so visual QA could not be re-rendered here; static structure/dependency checks completed.",
+  "social_icon_styles": true
+}

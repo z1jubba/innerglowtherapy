@@ -1,0 +1,17 @@
+{
+  "pages": [
+    "about.html",
+    "activities.html",
+    "contact.html",
+    "create-online.html",
+    "get-involved.html",
+    "index.html",
+    "whats-on.html"
+  ],
+  "missing": [],
+  "checks": {
+    "single_whatsapp_svg_each_page": true,
+    "header_symbol_each_page": true,
+    "footer_logo_each_page": true
+  }
+}
