@@ -47,7 +47,7 @@ if(siteFooter&&jumpLinks.length&&'IntersectionObserver' in window){
   fio.observe(siteFooter);
 }
 
-// Fast single-brush page transition. Current page remains visible until the stroke fully covers it.
+// Fast single-brush page transition. Delegated so the responsive app dock uses it too.
 if(!reduced){
   const wipe=document.createElement('div');
   wipe.className='brush-transition';
@@ -57,30 +57,39 @@ if(!reduced){
   const qs=()=>{try{return new URLSearchParams(location.search).get('_ig')==='1'}catch{return location.search.includes('_ig=1')}};
   const incoming=safeStore.get('ig-build-wipe')==='1'||qs();
   const cleanFlag=()=>{safeStore.remove('ig-build-wipe');try{const u=new URL(location.href);u.searchParams.delete('_ig');history.replaceState(null,'',u.href)}catch{}};
-  if(incoming){
+  const finishIncoming=()=>{
     wipe.className='brush-transition active hold';
-    // Two frames guarantee the real transition layer has painted before removing the head pre-cover.
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       document.documentElement.classList.remove('ig-incoming');
       wipe.className='brush-transition active reveal';
       cleanFlag();
-      setTimeout(()=>wipe.className='brush-transition',230);
+      setTimeout(()=>wipe.className='brush-transition',190);
     }));
-  }else document.documentElement.classList.remove('ig-incoming');
-  $$('a[href]').forEach(a=>a.addEventListener('click',e=>{
-    const h=a.getAttribute('href');
-    if(!h||h.startsWith('#')||h.startsWith('mailto:')||h.startsWith('tel:')||a.target==='_blank'||a.hasAttribute('download')||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
-    let u;try{u=new URL(a.href,location.href)}catch{return}
-    if(u.origin!==location.origin)return;
-    if(u.pathname===location.pathname&&u.hash)return;
-    e.preventDefault();
+  };
+  if(incoming) finishIncoming(); else document.documentElement.classList.remove('ig-incoming');
+  const navigate=u=>{
+    if(document.body.classList.contains('ig-navigating'))return;
+    document.body.classList.add('ig-navigating');
+    window.igAudio?.fadeOut?.(155);
+    window.igSfx?.swish?.();
     wipe.className='brush-transition active cover';
     safeStore.set('ig-build-wipe','1');
     setTimeout(()=>{
       try{u.searchParams.set('_ig','1')}catch{}
       location.href=u.href;
-    },220);
-  }));
+    },185);
+  };
+  window.__igNavigate=navigate;
+  document.addEventListener('click',e=>{
+    const a=e.target.closest?.('a[href]');
+    if(!a)return;
+    const h=a.getAttribute('href');
+    if(!h||h.startsWith('#')||h.startsWith('mailto:')||h.startsWith('tel:')||a.target==='_blank'||a.hasAttribute('download')||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+    let u;try{u=new URL(a.href,location.href)}catch{return}
+    if(u.origin!==location.origin)return;
+    if(u.pathname===location.pathname&&u.hash)return;
+    e.preventDefault();navigate(u);
+  });
 }else document.documentElement.classList.remove('ig-incoming');
 
 // Add lightweight inline social icons while retaining readable link text.
@@ -109,4 +118,145 @@ const setGuide=k=>{guide.innerHTML=guides[k]||''};setGuide(guideSel.value);guide
 $('#undo-btn').addEventListener('click',()=>{if(history.length<2)return;future.push(history.pop());restore(history[history.length-1])});$('#redo-btn').addEventListener('click',()=>{if(!future.length)return;const u=future.pop();history.push(u);restore(u)});$('#clear-btn').addEventListener('click',()=>{ctx.clearRect(0,0,cssW,cssH);save()});
 const exportArt=async()=>{const out=document.createElement('canvas');out.width=1000;out.height=700;const o=out.getContext('2d');o.fillStyle='#fffdf8';o.fillRect(0,0,1000,700);if(guide.innerHTML){const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700"><style>.guide-stroke{fill:none;stroke:#382341;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.guide-fill{fill:#fffdf8;stroke:#382341;stroke-width:6}</style>${guide.innerHTML.replace(/^<svg[^>]*>|<\/svg>$/g,'')}</svg>`;const im=new Image;await new Promise(r=>{im.onload=r;im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});o.globalAlpha=parseFloat(getComputedStyle(guide).opacity||'.48');o.drawImage(im,0,0,1000,700);o.globalAlpha=1}o.drawImage(dc,0,0,1000,700);return out};const download=async()=>{const out=await exportArt();const a=document.createElement('a');a.href=out.toDataURL('image/png');a.download='inner-glow-artwork.png';a.click()};$('#download-btn').addEventListener('click',download);$('#done-download').addEventListener('click',download);$('#print-btn').addEventListener('click',async()=>{const out=await exportArt();const w=open('','_blank');w.document.write(`<img src="${out.toDataURL('image/png')}" style="max-width:100%;display:block;margin:auto"><script>onload=()=>print()<\/script>`);w.document.close()});
 const prompts=['Draw the happiest monster you can imagine.','Invent a flower nobody has ever seen.','Draw how your favourite song feels.','Make a picture using only three colours.','Design the world’s strangest coffee mug.','Draw somewhere that makes you feel calm.','Turn a scribble into an animal.','Draw a dance move as a shape.','Create a new planet and give it a name.','Draw something tiny next to something enormous.'];$('#prompt-btn').addEventListener('click',()=>{$('#prompt-text').textContent=prompts[Math.floor(Math.random()*prompts.length)]});const pop=$('#done-pop');$('#done-btn').addEventListener('click',()=>{pop.classList.add('show');for(let i=0;i<34;i++){const q=document.createElement('span');q.className='confetti-piece';q.style.cssText=`--x:${Math.random()*100}vw;--c:${cols[i%cols.length]};--d:${1.2+Math.random()*1.5}s;--r:${Math.random()*180}deg`;pop.appendChild(q);setTimeout(()=>q.remove(),3000)}});$('#done-close').addEventListener('click',()=>pop.classList.remove('show'));pop.addEventListener('click',e=>{if(e.target===pop)pop.classList.remove('show')});}
+})();
+
+/* V16 responsive app shell + soundtrack / sound design */
+(()=>{
+  const body=document.body;
+  if(!body)return;
+  const page=body.dataset.page||'home';
+  const q=(s,c=document)=>c.querySelector(s), qa=(s,c=document)=>[...c.querySelectorAll(s)];
+  const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ----- Light WebAudio SFX: generated locally, no extra network/audio files. -----
+  let ac=null, unlocked=false, lastBrush=0;
+  const isMuted=()=>store.get('ig-sound-muted')==='1';
+  const context=()=>{
+    if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)()}catch{return null}}
+    return ac;
+  };
+  const unlock=async()=>{
+    if(isMuted())return false;
+    const c=context();if(!c)return false;
+    try{if(c.state==='suspended')await c.resume();unlocked=true;return true}catch{return false}
+  };
+  const gainNode=(c,vol=.035)=>{const g=c.createGain();g.gain.value=vol;g.connect(c.destination);return g};
+  const tone=(freq=520,dur=.055,vol=.025,type='sine',slide=0)=>{
+    if(!unlocked||isMuted())return;
+    const c=context(),o=c.createOscillator(),g=gainNode(c,vol),t=c.currentTime;
+    o.type=type;o.frequency.setValueAtTime(freq,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(40,freq+slide),t+dur);
+    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g);o.start(t);o.stop(t+dur+.015);
+  };
+  const noise=(dur=.16,vol=.018,from=1300,to=280)=>{
+    if(!unlocked||isMuted())return;
+    const c=context(),frames=Math.max(1,Math.floor(c.sampleRate*dur)),buf=c.createBuffer(1,frames,c.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<frames;i++)d[i]=(Math.random()*2-1)*(1-i/frames);
+    const src=c.createBufferSource(),f=c.createBiquadFilter(),g=gainNode(c,vol),t=c.currentTime;
+    src.buffer=buf;f.type='bandpass';f.Q.value=.7;f.frequency.setValueAtTime(from,t);f.frequency.exponentialRampToValueAtTime(to,t+dur);
+    g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    src.connect(f);f.connect(g);src.start(t);src.stop(t+dur+.02);
+  };
+  const sfx={
+    click(){tone(560,.045,.018,'triangle',-120)},
+    nav(){tone(420,.055,.022,'triangle',180)},
+    swish(){noise(.17,.025,1800,220)},
+    section(){tone(330,.06,.012,'sine',80);setTimeout(()=>tone(495,.07,.01,'sine',70),42)},
+    brush(){const n=performance.now();if(n-lastBrush<150)return;lastBrush=n;noise(.07,.009,900,360)},
+    erase(){noise(.11,.015,520,160)},
+    sparkle(){tone(690,.06,.021,'sine',250);setTimeout(()=>tone(940,.08,.016,'sine',180),48)},
+    success(){tone(440,.09,.025,'sine',120);setTimeout(()=>tone(660,.11,.022,'sine',150),75);setTimeout(()=>tone(880,.13,.018,'sine',180),155)}
+  };
+  window.igSfx=sfx;
+
+  // ----- Page soundtrack. Browser rules require the first user interaction before audible playback. -----
+  const track=page==='activities'?{src:'assets/audio/activities-bg.mp3',label:'Activities soundtrack',vol:.105}:page==='create'?{src:'assets/audio/create-bg.mp3',label:'Create Online soundtrack',vol:.115}:null;
+  let music=null, wanted=!isMuted(), musicReady=false;
+  const startMusic=async()=>{
+    if(!track||!wanted||isMuted())return;
+    if(!music){
+      music=new Audio(track.src);music.loop=true;music.preload='metadata';music.volume=0;music.setAttribute('playsinline','');
+    }
+    try{
+      await music.play();musicReady=true;
+      const start=performance.now(),target=track.vol;
+      const fade=now=>{if(!music||music.paused)return;const p=Math.min(1,(now-start)/520);music.volume=target*p;if(p<1)requestAnimationFrame(fade)};requestAnimationFrame(fade);
+      updateSoundUI();
+    }catch{musicReady=false;updateSoundUI(true)}
+  };
+  const stopMusic=()=>{if(music){music.pause();music.volume=0}musicReady=false};
+  const fadeOut=(ms=160)=>{if(!music||music.paused)return;const start=performance.now(),v=music.volume;const f=now=>{if(!music)return;const p=Math.min(1,(now-start)/ms);music.volume=Math.max(0,v*(1-p));if(p<1)requestAnimationFrame(f);else music.pause()};requestAnimationFrame(f)};
+  window.igAudio={fadeOut,startMusic,stopMusic};
+
+  const soundBtn=document.createElement('button');
+  soundBtn.type='button';soundBtn.className='sound-control';
+  soundBtn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path class="speaker" d="M4 9v6h4l5 4V5L8 9H4Z"/><path class="wave" d="M16 9.2c1.3 1.5 1.3 4.1 0 5.6M18.6 6.8c2.8 3 2.8 7.4 0 10.4"/></svg><span class="sound-copy"></span><i></i>';
+  const header=q('.site-header');if(header)header.appendChild(soundBtn);
+  const updateSoundUI=(locked=false)=>{
+    const muted=isMuted()||!wanted;
+    soundBtn.classList.toggle('is-muted',muted);soundBtn.classList.toggle('needs-tap',!!(track&&wanted&&!musicReady&&locked));
+    soundBtn.setAttribute('aria-pressed',String(!muted));
+    soundBtn.setAttribute('aria-label',muted?'Turn website sound on':'Turn website sound off');
+    const copy=q('.sound-copy',soundBtn);if(copy)copy.textContent=track?(muted?'Music off':musicReady?'Music on':'Tap for music'):(muted?'Sound off':'Sound on');
+  };
+  soundBtn.addEventListener('click',async()=>{
+    if(isMuted()||!wanted){store.set('ig-sound-muted','0');wanted=true;await unlock();startMusic();sfx.sparkle()}
+    else{store.set('ig-sound-muted','1');wanted=false;stopMusic()}
+    updateSoundUI();
+  });
+  updateSoundUI(!!track);
+
+  const firstUnlock=async()=>{if(isMuted())return;await unlock();if(track)startMusic();updateSoundUI()};
+  addEventListener('pointerdown',firstUnlock,{once:true,capture:true});
+  addEventListener('keydown',firstUnlock,{once:true,capture:true});
+  // If the origin has already been granted autoplay after a prior interaction, try immediately too.
+  if(track&&store.get('ig-audio-activated')==='1'&&!isMuted())startMusic();
+  addEventListener('pointerdown',()=>store.set('ig-audio-activated','1'),{once:true,capture:true});
+
+  // Interaction sound map. No hover sounds: keeps it pleasant and phone-friendly.
+  document.addEventListener('click',e=>{
+    if(isMuted())return;
+    const el=e.target.closest?.('button,a,[role="button"]');if(!el)return;
+    if(el===soundBtn)return;
+    const id=el.id||'';
+    if(id==='done-btn'||id==='done-download'){sfx.success();return}
+    if(id==='prompt-btn'){sfx.sparkle();return}
+    if(id==='clear-btn'){sfx.erase();return}
+    if(el.closest('.app-dock')||el.closest('.story-jump')||el.closest('.section-nav'))sfx.nav();
+    else sfx.click();
+  },{capture:true});
+
+  const draw=q('#draw-canvas');if(draw)draw.addEventListener('pointerdown',()=>sfx.brush(),{passive:true});
+
+  // One soft construction cue when a main section settles into view.
+  if('IntersectionObserver' in window&&!reduced){
+    const heard=new WeakSet();
+    const sio=new IntersectionObserver(entries=>entries.forEach(en=>{if(en.isIntersecting&&!heard.has(en.target)){heard.add(en.target);sfx.section()}}),{threshold:.58});
+    qa('.story-panel,.content-section,.clean-board').forEach(el=>sio.observe(el));
+  }
+
+  // ----- Responsive app dock / More sheet -----
+  const icons={
+    home:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2v8.3h-5.2v-5.4H8.7v5.4H3.5Z"/></svg>',
+    activities:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c3.8 1 7-1.4 7-5 0-2.5-1.9-4.5-4.5-4.5S3 11.4 3 14c0 2 .8 3.7 2 5Zm9.5-13.8 1.1 3 3.1.1-2.4 1.9.8 3-2.6-1.7-2.6 1.7.8-3-2.4-1.9 3.1-.1Z"/></svg>',
+    create:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 19 3.8-.8L18.7 7.3a2.2 2.2 0 0 0-3.1-3.1L4.8 15.1 4 19Z"/><path d="m13.8 6 3.2 3.2"/></svg>',
+    calendar:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.8h14v14H5zM8 3.5v4M16 3.5v4M5 9.5h14"/></svg>',
+    more:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>'
+  };
+  const dock=document.createElement('nav');dock.className='app-dock';dock.setAttribute('aria-label','App navigation');
+  const tabs=[['home','index.html','Home'],['activities','activities.html','Activities'],['create','create-online.html','Create'],['whats','whats-on.html','What’s on']];
+  dock.innerHTML=tabs.map(([id,href,label])=>`<a class="app-tab ${page===id?'active':''}" href="${href}">${icons[id==='whats'?'calendar':id]}<span>${label}</span></a>`).join('')+`<button class="app-tab app-more" type="button" aria-expanded="false">${icons.more}<span>More</span></button>`;
+  document.body.appendChild(dock);
+
+  const backdrop=document.createElement('div');backdrop.className='app-sheet-backdrop';backdrop.hidden=true;
+  const sheet=document.createElement('aside');sheet.className='app-more-sheet';sheet.setAttribute('aria-label','More navigation');sheet.setAttribute('aria-hidden','true');
+  sheet.innerHTML=`<div class="app-sheet-grab"></div><div class="app-sheet-head"><strong>Inner Glow</strong><button type="button" class="app-sheet-close" aria-label="Close menu">×</button></div><div class="app-sheet-grid"><a href="about.html" class="${page==='about'?'active':''}"><span>Our story</span><small>Why Inner Glow exists</small></a><a href="get-involved.html" class="${page==='involve'?'active':''}"><span>Get involved</span><small>Attend, volunteer or partner</small></a><a href="contact.html" class="${page==='contact'?'active':''}"><span>Say hello</span><small>Call, email or message us</small></a></div><div class="app-sheet-actions"><a href="tel:+447377513695">Call us</a><a class="wa" href="https://wa.me/447377513695" target="_blank" rel="noopener">WhatsApp</a></div>`;
+  document.body.append(backdrop,sheet);
+  const moreBtn=q('.app-more',dock),closeBtn=q('.app-sheet-close',sheet);
+  const setSheet=open=>{
+    sheet.classList.toggle('open',open);backdrop.classList.toggle('open',open);backdrop.hidden=!open;sheet.setAttribute('aria-hidden',String(!open));moreBtn?.setAttribute('aria-expanded',String(open));body.classList.toggle('app-sheet-open',open);if(open)closeBtn?.focus();
+  };
+  moreBtn?.addEventListener('click',()=>setSheet(!sheet.classList.contains('open')));closeBtn?.addEventListener('click',()=>setSheet(false));backdrop.addEventListener('click',()=>setSheet(false));addEventListener('keydown',e=>{if(e.key==='Escape')setSheet(false)});
+  if(['about','involve','contact'].includes(page))moreBtn?.classList.add('active');
 })();
